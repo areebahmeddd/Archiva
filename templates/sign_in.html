@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Archiva - Sign In</title>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">
+            <a href="https://github.com/areebahmeddd/Archiva">Project-A06</a>
+        </h1>
+
+        <!-- Sign In Card -->
+        <div class="card shadow p-4 mb-4">
+            <form action="{{ url_for('sign_in') }}" method="post">
+                {% for field, icon, type, label in [('username', 'alternate_email', 'text', 'Username'),
+                ('password', 'lock', 'password', 'Password')] %}
+                <!-- Dynamic Input Fields -->
+                <div class="mb-3">
+                    <label for="{{ field }}" class="form-label">{{ label }}</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="material-icons">{{ icon }}</i></span>
+                        <input type="{{ type }}" class="form-control" id="{{ field }}" name="{{ field }}" required>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Error Message Alert -->
+                <div class="alert alert-danger {% if error_message %}d-block{% else %}d-none{% endif %}" role="alert">
+                    {{ error_message }}
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <i class="material-icons me-2">login</i> Sign In
+                        </div>
+                    </button>
+                    <a href="{{ url_for('sign_up') }}" class="btn btn-secondary">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <i class="material-icons me-2">person_add</i> Sign Up
+                        </div>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
