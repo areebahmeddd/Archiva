@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Archiva - Verifiacation</title>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">
+            <a href="https://github.com/areebahmeddd/Archiva">Archiva</a>
+        </h1>
+
+        <!-- Verify User Card -->
+        <div class="card shadow p-4 mb-4">
+            <form action="{{ url_for('verify_otp', phone_number=phone_number) }}" method="post">
+                <div class="mb-3">
+                    <label for="otp" class="form-label">Enter OTP</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="material-icons">lock</i></span>
+                        <input type="text" class="form-control" id="otp" name="otp" required>
+                        <input type="hidden" name="phone" value="{{ phone }}">
+                    </div>
+                </div>
+
+                <!-- Error Message Alert -->
+                <div class="alert alert-danger {% if error_message %}d-block{% else %}d-none{% endif %}" role="alert">
+                    {{ error_message }}
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <i class="material-icons me-2">verified_user</i> Verify
+                        </div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

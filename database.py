@@ -27,6 +27,7 @@ def execute_query(query, parameters = None):
             connection.execute(query, parameters)
             connection.commit()
             print("[Database] Query executed successfully.")
+            return True
 
     except sqlite3.Error as exc:
         print(f'[Database] Error executing query: {exc}')

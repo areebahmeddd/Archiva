@@ -3,6 +3,7 @@ import hashlib
 from flask import Flask, render_template, redirect, url_for, request, session, send_from_directory, send_file
 
 from database import create_table, execute_query, fetch_query
+from otp import send_sms, verify_sms, email
 
 app = Flask(__name__)
 app.secret_key = "12345"
@@ -18,6 +19,11 @@ def index():
     create_table()
     return redirect(url_for("sign_in"))
 
+@app.errorhandler(404)
+def page_not_found(e):
+    print("\nRoute /404")
+    return render_template("404.html"), 404
+
 @app.route("/sign_in", methods = ["GET", "POST"])
 def sign_in():
     print("\nRoute /sign_in")
@@ -29,12 +35,13 @@ def sign_in():
             "password": hashlib.sha256(request.form["password"].encode()).hexdigest()
         }
 
-        if fetch_query("SELECT * FROM users WHERE username = ? AND password = ?", (user_data["username"], user_data["password"])):
+        if fetch_query("SELECT * FROM users WHERE username = ? AND password = ?",
+                       (user_data["username"], user_data["password"])):
             session["username"] = user_data["username"]
             print(f'[Server] User "{user_data["username"]}" logged in successfully.')
             return redirect(url_for("dashboard"))
         else:
-            print(f'[Server] Failed login attempt for user "{user_data["username"]}"')
+            print(f'[Server] Failed sign-in attempt for user "{user_data["username"]}"')
             error_message = "Invalid Username or Password"
 
     return render_template("sign_in.html", error_message = error_message)
@@ -42,6 +49,7 @@ def sign_in():
 @app.route("/sign_up", methods = ["GET", "POST"])
 def sign_up():
     print("\nRoute /sign_up")
+    error_message = None
 
     if request.method == "POST":
         user_data = {
@@ -51,13 +59,39 @@ def sign_up():
             "password": hashlib.sha256(request.form["password"].encode()).hexdigest()
         }
 
-        execute_query("INSERT INTO users (username, email, phone, password) VALUES (?, ?, ?, ?)",
-                      (user_data["username"], user_data["email"], user_data["phone"], user_data["password"]))
+        if (execute_query("INSERT INTO users (username, email, phone, password) VALUES (?, ?, ?, ?)",
+                          (user_data["username"], user_data["email"], user_data["phone"], user_data["password"]))):
+            print(f'[Server] User "{user_data["username"]}" signed up successfully.')
+            return redirect(url_for("verify_otp", phone_number = user_data["phone"]))
+        else:
+            print(f'[Server] Failed sign-up attempt for user "{user_data["username"]}"')
+            error_message = "Username or Email already exists"
 
-        print(f'[Server] User "{user_data["username"]}" signed up successfully.')
-        return redirect(url_for("sign_in"))
+    return render_template("sign_up.html", error_message = error_message)
 
-    return render_template("sign_up.html")
+@app.route("/verify_otp/<phone_number>", methods = ["GET", "POST"])
+def verify_otp(phone_number):
+    print(f'\nRoute /verify_otp/{phone_number}')
+    error_message = None
+
+    if request.method == "GET":
+        if send_sms(phone_number):
+            print("[Server] OTP Sent Successfully.")
+            error_message = "OTP Sent Successfully"
+        else:
+            error_message = "Failed to Send OTP"
+
+    elif request.method == "POST":
+        otp_input = request.form["otp"]
+
+        if verify_sms(phone_number, otp_input):
+            print("[Server] SMS Verification Successfull")
+            return redirect(url_for("sign_in"))
+        else:
+            print("[Server] SMS Verification Failed")
+            error_message = "Invalid OTP"
+
+    return render_template("verify.html", phone_number = phone_number, error_message = error_message)
 
 @app.route("/dashboard")
 def dashboard():
